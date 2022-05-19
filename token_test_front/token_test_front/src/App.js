@@ -1,8 +1,10 @@
 import './App.css';
+import MetamaskConnect from './MetamaskConnect';
 
 function App() {
   return (
-    <div className="App">
+    <div>
+      <MetamaskConnect />
     </div>
   );
 }
