@@ -1,10 +1,18 @@
 import { Box, Typography,Container,CssBaseline, Button, TextField } from "@mui/material";
 import { ethers } from "ethers";
 import { useEffect, useState } from "react";
+import TokenAbi from "./abi/TokenAbi.json";
+
+const TOKEN_ADDRESS = "0xf7DC76fbE6D64dcf7C131B1b9b4213B2AFF494d5";
 
 function MetamaskConnect() {
     const [account, setAccount] = useState(null);
     const [balance, setBalance] = useState(null);
+    const [decimals, setDecimals] = useState(null);
+    const [name, setName] = useState(null);
+    const [symbol, setSymbol] = useState(null);
+    const [totalSupply, setTotalSupply] = useState(null);
+
     const [errorMessage, setErrorMessage] = useState(null);
 
     useEffect(() => {
@@ -16,37 +24,37 @@ function MetamaskConnect() {
     }, [])
 
     function connectHandler() {
-        if (window.ethereum) {
-            window.ethereum.request({
-                method: "eth_requestAccounts",
-            }).then(result => {
-                accountChangeHandler(result[0]);
-            })
-        } else {
-            setErrorMessage("Error. Could not connect.");    
-        }
+        window.ethereum.request({method: "eth_requestAccounts"}).then(res => {
+            setAccount(res);
+            getToken(res);
+        })  
     }
 
-    function accountChangeHandler(account) {
-        setAccount(0);
-        setBalance(0);
-        setAccount(account);
-        getUserBalance(account.toString());
-    }
-
-    function getUserBalance(address) {
-        window.ethereum.request({
-            method: "eth_getBalance", params: [address, "latest"]
-        }).then(result => {
-            setBalance(ethers.utils.formatEther(result));
-        })
+    function getToken(res) {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const token = new ethers.Contract(TOKEN_ADDRESS, TokenAbi, signer);
+        token.balanceOf(res.toString()).then((res) => {
+            const tokenNum = Number(ethers.utils.formatEther(res));
+            console.log(tokenNum);
+            setBalance(tokenNum.toFixed(2));
+        }).catch((err) => console.log(err));
+        token.name(account).then((res) => setName(res));
+        token.decimals(account).then(res => setDecimals(res));
+        token.symbol(account).then(res => setSymbol(res));
+        token.totalSupply(account).then(res => setTotalSupply(res));    
     }
 
     function chainChangedHandler() {
         window.location.reload();
     }
 
-    window.ethereum.on("accountsChanged", accountChangeHandler);
+    function accountChangedHandler() {
+        window.location.reload();
+    }
+
+
+    window.ethereum.on("accountsChanged", accountChangedHandler);
     window.ethereum.on("chainChanged", chainChangedHandler);
 
     return  <Container component="main" maxWidth="xs">
@@ -56,10 +64,15 @@ function MetamaskConnect() {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
+            
         }}>
             <Typography variant="h5">Your account details</Typography>
-            <TextField value={"Address:  " + account} margin="dense" sx={{padding: "auto", }}></TextField>
-            <TextField value={"Balance:  " + balance} margin="dense"></TextField>
+            <TextField value={"Address:  " + account} margin="dense" sx={{width: "500px"}}></TextField>
+            <TextField value={"Balance:  " + balance} margin="dense" sx={{width: "500px"}}></TextField>
+            <TextField value={"Name:  " + name} margin="dense" sx={{width: "500px"}}></TextField>
+            <TextField value={"Symbol:  " + symbol} margin="dense" sx={{width: "500px"}}></TextField>
+            <TextField value={"Decimals:  " + decimals} margin="dense" sx={{width: "500px"}}></TextField>
+            <TextField value={"Total supply:  " + totalSupply} margin="dense" sx={{width: "500px"}}></TextField>
         </Box>) : ( <Box sx={{
             marginTop: 8,
             display: "flex",
@@ -67,7 +80,7 @@ function MetamaskConnect() {
             alignItems: "center",
         }}>
             <Typography variant="h5">Connect to your Metamask account</Typography>
-            <Button variant="contained" sx={{ mt: 3, mb: 2 }}onClick={connectHandler}>Connect</Button>
+            <Button variant="contained" sx={{ mt: 3, mb: 2 }} onClick={connectHandler}>Connect</Button>
             <Typography variant="subtitle2" color="red">{errorMessage}</Typography>
         </Box>)}
     </Container>
