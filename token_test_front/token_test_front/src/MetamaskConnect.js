@@ -2,6 +2,7 @@ import { Box, Typography,Container,CssBaseline, Button, TextField } from "@mui/m
 import { ethers } from "ethers";
 import { useEffect, useState } from "react";
 import TokenAbi from "./abi/TokenAbi.json";
+import TransferForm from "./TransferForm";
 
 const TOKEN_ADDRESS = "0xf7DC76fbE6D64dcf7C131B1b9b4213B2AFF494d5";
 
@@ -73,6 +74,7 @@ function MetamaskConnect() {
             <TextField value={"Symbol:  " + symbol} margin="dense" sx={{width: "500px"}}></TextField>
             <TextField value={"Decimals:  " + decimals} margin="dense" sx={{width: "500px"}}></TextField>
             <TextField value={"Total supply:  " + totalSupply} margin="dense" sx={{width: "500px"}}></TextField>
+            <Button variant="contained" sx={{ mt: 3, mb: 2 }}>Transfer</Button>
         </Box>) : ( <Box sx={{
             marginTop: 8,
             display: "flex",
@@ -83,6 +85,7 @@ function MetamaskConnect() {
             <Button variant="contained" sx={{ mt: 3, mb: 2 }} onClick={connectHandler}>Connect</Button>
             <Typography variant="subtitle2" color="red">{errorMessage}</Typography>
         </Box>)}
+        <TransferForm />
     </Container>
 }
 
