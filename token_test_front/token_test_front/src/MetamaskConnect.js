@@ -16,6 +16,7 @@ import { ethers } from "ethers";
 import { useEffect, useState } from "react";
 import TokenAbi from "./abi/TokenAbi.json";
 import TransferForm from "./TransferForm";
+import MintForm from "./MintForm";
 
 const TOKEN_ADDRESS = "0xf7DC76fbE6D64dcf7C131B1b9b4213B2AFF494d5";
 
@@ -26,7 +27,9 @@ function MetamaskConnect() {
   const [name, setName] = useState(null);
   const [symbol, setSymbol] = useState(null);
   const [totalSupply, setTotalSupply] = useState(null);
-  const [isActive, setIsActive] = useState(false);
+  const [isMinter, setIsMinter] = useState(null);
+  const [isTransferOpen, setIsTransferOpen] = useState(false);
+  const [isMintOpen, setIsMintOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -67,13 +70,16 @@ function MetamaskConnect() {
         setBalance(tokenNum.toFixed(2));
       })
       .catch((err) => console.log(err));
-    token.name(account).then((res) => setName(res));
-    token.decimals(account).then((res) => setDecimals(res));
-    token.symbol(account).then((res) => setSymbol(res));
-    token.totalSupply(account).then((res) => {
+    token.name().then((res) => setName(res));
+    token.decimals().then((res) => setDecimals(res));
+    token.symbol().then((res) => setSymbol(res));
+    token.totalSupply().then((res) => {
       const supplyNum = Number(ethers.utils.formatEther(res));
       setTotalSupply(supplyNum.toFixed(2));
       setIsLoading(false);
+    });
+    token.hasRole(ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE')), res.toString()).then((minter) => {
+        minter? setIsMinter(true) : setIsMinter(false);
     });
   }
 
@@ -169,12 +175,20 @@ function MetamaskConnect() {
             </Typography>
             <Box sx={{ marginTop: "20px" }}>
               <Table sx={{}}>
-                <TableBody >
+                <TableBody>
                   {rows.map((row) => {
                     return (
-                      <TableRow key={row.name} hover={true} sx={{backgroundColor: "#e0d1ed", height: "10px"}}>
-                        <TableCell size="small" sx={{margin: "5px"}}>{row.name}</TableCell>
-                        <TableCell size="small" sx={{margin: "5px"}}>{row.data}</TableCell>
+                      <TableRow
+                        key={row.name}
+                        hover={true}
+                        sx={{ backgroundColor: "#e0d1ed", height: "10px" }}
+                      >
+                        <TableCell size="small" sx={{ margin: "5px" }}>
+                          {row.name}
+                        </TableCell>
+                        <TableCell size="small" sx={{ margin: "5px" }}>
+                          {row.data}
+                        </TableCell>
                       </TableRow>
                     );
                   })}
@@ -205,16 +219,18 @@ function MetamaskConnect() {
             <Button
               variant="contained"
               sx={{ backgroundColor: "#9979C1" }}
-              onClick={() => setIsActive(true)}
+              onClick={() => setIsTransferOpen(true)}
             >
               Transfer
             </Button>
-            {/* <Button
+            <Button
               variant="contained"
               sx={{ backgroundColor: "#9979C1", marginTop: "15px" }}
+              onClick={() => setIsMintOpen(true)}
+              disabled={!isMinter}
             >
               Mint
-            </Button> */}
+            </Button>
           </Box>
         </Card>
       </Box>
@@ -237,8 +253,11 @@ function MetamaskConnect() {
       </Backdrop>
       <Box>
         <Modal
-          open={isActive}
-          onClose={() => setIsActive(false)}
+          open={isTransferOpen}
+          onClose={() => {
+              setIsTransferOpen(false);
+              getToken(account);
+            }}
           sx={{
             display: "flex",
             justifyContent: "center",
@@ -246,6 +265,22 @@ function MetamaskConnect() {
           }}
         >
           <TransferForm />
+        </Modal>
+      </Box>
+      <Box>
+        <Modal
+          open={isMintOpen}
+          onClose={() => {
+              setIsMintOpen(false);
+              getToken(account);
+            }}
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <MintForm />
         </Modal>
       </Box>
     </div>
