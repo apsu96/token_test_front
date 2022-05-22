@@ -1,4 +1,4 @@
-import { Modal, Box,TextField, Button } from '@mui/material';
+import { Box,TextField, Button } from '@mui/material';
 import { useState } from 'react';
 import {ethers } from 'ethers';
 import TokenAbi from "./abi/TokenAbi.json";

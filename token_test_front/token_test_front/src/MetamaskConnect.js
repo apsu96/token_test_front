@@ -1,4 +1,4 @@
-import { Box, Typography,Container,CssBaseline, Button, TextField, Modal } from "@mui/material";
+import { Box, Typography,Button, TextField, Modal, Backdrop, CircularProgress } from "@mui/material";
 import { ethers } from "ethers";
 import { useEffect, useState } from "react";
 import TokenAbi from "./abi/TokenAbi.json";
@@ -15,10 +15,11 @@ function MetamaskConnect() {
     const [totalSupply, setTotalSupply] = useState(null);
     const [isActive, setIsActive] = useState(false);
     const [errorMessage, setErrorMessage] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         if (window.ethereum) {
-            connectHandler();
+            // connectHandler();
             window.ethereum.on("accountsChanged", accountChangedHandler);
             window.ethereum.on("chainChanged", chainChangedHandler);
         } else {
@@ -33,6 +34,7 @@ function MetamaskConnect() {
     }, [])
 
     function connectHandler() {
+        setIsLoading(true);
         window.ethereum.request({method: "eth_requestAccounts"}).then(res => {
             setAccount(res);
             getToken(res);
@@ -50,7 +52,10 @@ function MetamaskConnect() {
         token.name(account).then((res) => setName(res));
         token.decimals(account).then(res => setDecimals(res));
         token.symbol(account).then(res => setSymbol(res));
-        token.totalSupply(account).then(res => setTotalSupply(res));
+        token.totalSupply(account).then(res => {
+            setTotalSupply(res);
+            setIsLoading(false);
+        });
     }
 
     function chainChangedHandler() {
@@ -67,14 +72,15 @@ function MetamaskConnect() {
         getToken(accounts[0]);
     }    
 
-    return  <div>
-        <Container component="main" maxWidth="xs">
-        <CssBaseline />
+    return  <div style={{backgroundColor: "#9979C1", height: "100vh", display: "flex", alignItems: "center", justifyContent: "center"}}>
+        {/* <Container component="main" sx={{backgroundColor: "grey"}}> */}
         {account? (<Box sx={{
             marginTop: 8,
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
+            backgroundColor: "grey",
+            
             
         }}>
             <Typography variant="h5">Your account details</Typography>
@@ -88,16 +94,24 @@ function MetamaskConnect() {
             onClick={() => setIsActive(true)}
             >Transfer</Button>
         </Box>) : ( <Box sx={{
-            marginTop: 8,
             display: "flex",
-            flexDirection: "column",
             alignItems: "center",
+            backgroundColor: "#d7c1e8", 
+            borderRadius: "30px",
+            minHeight: "200px",
+            minWidth: "300px",
+            padding: "50px"
         }}>
-            <Typography variant="h5">Connect to your Metamask account</Typography>
-            <Button variant="contained" sx={{ mt: 3, mb: 2 }} onClick={connectHandler}>Connect</Button>
+            <Box sx={{textAlign: "center"}}>
+            <Typography variant="h5">Connect to Metamask Wallet</Typography>
+            <Button variant="contained" sx={{marginTop: "30px", backgroundColor: "#9979C1" }} onClick={connectHandler}>Connect</Button>
+            <Backdrop open={isLoading}>
+            <CircularProgress color="inherit" />
+            </Backdrop>
+            </Box>
             <Typography variant="subtitle2" color="red">{errorMessage}</Typography>
         </Box>)}
-    </Container>
+    {/* </Container> */}
     <Box >
         <Modal open={isActive} onClose={() => setIsActive(false)}sx={{display: "flex", justifyContent: "center", alignItems: "center"}}>
         <TransferForm />
