@@ -1,4 +1,4 @@
-import { Box, Typography,Button, TextField, Modal, Backdrop, CircularProgress } from "@mui/material";
+import { Box, Typography,Button, Modal, Backdrop, CircularProgress, Card,CardContent, Table, TableBody, TableRow, TableCell } from "@mui/material";
 import { ethers } from "ethers";
 import { useEffect, useState } from "react";
 import TokenAbi from "./abi/TokenAbi.json";
@@ -19,7 +19,6 @@ function MetamaskConnect() {
 
     useEffect(() => {
         if (window.ethereum) {
-            // connectHandler();
             window.ethereum.on("accountsChanged", accountChangedHandler);
             window.ethereum.on("chainChanged", chainChangedHandler);
         } else {
@@ -53,7 +52,8 @@ function MetamaskConnect() {
         token.decimals(account).then(res => setDecimals(res));
         token.symbol(account).then(res => setSymbol(res));
         token.totalSupply(account).then(res => {
-            setTotalSupply(res);
+            const supplyNum = Number(ethers.utils.formatEther(res));
+            setTotalSupply(supplyNum.toFixed(2));
             setIsLoading(false);
         });
     }
@@ -70,48 +70,94 @@ function MetamaskConnect() {
         setTotalSupply(null);
         setName(null);
         getToken(accounts[0]);
-    }    
+    }
+
+    function shortAddress (account) {
+        if (account) {
+            let substring1 = account.toString().slice(0, 5);
+            let substring2 = account.toString().slice(-4);
+            return substring1 + "..." + substring2;
+        }
+    }
+
+    function createData(name, data) {
+        if (name === "Address") {
+            data = shortAddress(data);
+        }
+        return {name, data};
+    }
+
+    const rows = [
+        createData("Address", account),
+        createData("Balance", balance + "  " + symbol),
+        createData("Name", name),
+        createData("Decimals", decimals),
+        createData("Total Supply", totalSupply),
+    ]
+    
+    const connectForm = ( <Box sx={{
+        display: "flex",
+        alignItems: "center",
+        backgroundColor: "#d7c1e8", 
+        borderRadius: "30px",
+        minHeight: "200px",
+        minWidth: "300px",
+        padding: "50px"
+    }}>
+        <Box sx={{textAlign: "center"}}>
+        <Typography variant="h5">Connect to Metamask Wallet</Typography>
+        <Button variant="contained" sx={{marginTop: "30px", backgroundColor: "#9979C1" }} onClick={connectHandler}>Connect</Button>
+        </Box>
+        <Typography variant="subtitle2" color="red">{errorMessage}</Typography>
+    </Box>);
+
+    const accountCard = (<Box sx={{
+        display: "flex",
+        justifyContent: "space-around",
+        alignItems: "center",
+        backgroundColor: "#d7c1e8", 
+        borderRadius: "30px",
+        padding: "30px"  
+    }}>
+        <Box>
+        <Card sx={{backgroundColor: "#d7c1e8", height: "350px", minWidth: "350px"}}>
+            <CardContent>
+            <Typography sx={{fontSize: "18px", fontWeight: "bold", textAlign: "center"}}>Account details:</Typography>
+            <Box sx={{marginTop: "20px"}}>
+            <Table>
+            <TableBody>
+                {rows.map((row) => {
+                    return <TableRow key={row.name}>
+                        <TableCell>{row.name}</TableCell>
+                        <TableCell>{row.data}</TableCell>
+                    </TableRow>
+                })}
+            </TableBody>    
+            </Table>
+            </Box>
+            </CardContent>
+        </Card>
+        </Box>
+        <Box sx={{paddingLeft: "20px"}}>
+        <Card sx={{backgroundColor: "#d7c1e8", height: "350px", minWidth: "250px"}}>
+        <CardContent> 
+        <Typography sx={{fontSize: "18px", fontWeight: "bold", textAlign: "center"}}>Transactions:</Typography>
+        </CardContent>
+        <Box sx={{display: "flex", flexDirection: "column", marginTop: "20px"}}>
+        <Button variant="contained" sx={{backgroundColor: "#9979C1" }} 
+        onClick={() => setIsActive(true)}
+        >Transfer</Button>
+        <Button variant="contained" sx={{backgroundColor: "#9979C1", marginTop: "15px" }}>Mint</Button>
+        </Box>       
+        </Card>
+        </Box>
+    </Box>);
 
     return  <div style={{backgroundColor: "#9979C1", height: "100vh", display: "flex", alignItems: "center", justifyContent: "center"}}>
-        {/* <Container component="main" sx={{backgroundColor: "grey"}}> */}
-        {account? (<Box sx={{
-            marginTop: 8,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            backgroundColor: "grey",
-            
-            
-        }}>
-            <Typography variant="h5">Your account details</Typography>
-            <TextField value={"Address:  " + account} margin="dense" sx={{width: "500px"}}></TextField>
-            <TextField value={"Balance:  " + balance} margin="dense" sx={{width: "500px"}}></TextField>
-            <TextField value={"Name:  " + name} margin="dense" sx={{width: "500px"}}></TextField>
-            <TextField value={"Symbol:  " + symbol} margin="dense" sx={{width: "500px"}}></TextField>
-            <TextField value={"Decimals:  " + decimals} margin="dense" sx={{width: "500px"}}></TextField>
-            <TextField value={"Total supply:  " + totalSupply} margin="dense" sx={{width: "500px"}}></TextField>
-            <Button variant="contained" sx={{ mt: 3, mb: 2 }} 
-            onClick={() => setIsActive(true)}
-            >Transfer</Button>
-        </Box>) : ( <Box sx={{
-            display: "flex",
-            alignItems: "center",
-            backgroundColor: "#d7c1e8", 
-            borderRadius: "30px",
-            minHeight: "200px",
-            minWidth: "300px",
-            padding: "50px"
-        }}>
-            <Box sx={{textAlign: "center"}}>
-            <Typography variant="h5">Connect to Metamask Wallet</Typography>
-            <Button variant="contained" sx={{marginTop: "30px", backgroundColor: "#9979C1" }} onClick={connectHandler}>Connect</Button>
-            <Backdrop open={isLoading}>
-            <CircularProgress color="inherit" />
-            </Backdrop>
-            </Box>
-            <Typography variant="subtitle2" color="red">{errorMessage}</Typography>
-        </Box>)}
-    {/* </Container> */}
+        {account?  accountCard : connectForm}
+        <Backdrop open={isLoading}>
+        <CircularProgress color="inherit" />
+        </Backdrop>
     <Box >
         <Modal open={isActive} onClose={() => setIsActive(false)}sx={{display: "flex", justifyContent: "center", alignItems: "center"}}>
         <TransferForm />
