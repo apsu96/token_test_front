@@ -4,7 +4,7 @@ import {
   Button,
   Backdrop,
   CircularProgress,
-  Typography
+  Typography,
 } from "@mui/material";
 import { useState } from "react";
 import { ethers } from "ethers";
@@ -31,6 +31,7 @@ function TransferForm() {
       token
         .transfer(address, ethers.utils.parseUnits(amount))
         .then((hash) => {
+          setError("");
           setIsSending(false);
           setIsSigned(true);
           setHash(hash.hash);
@@ -46,7 +47,10 @@ function TransferForm() {
             });
           }, 2000);
         })
-        .catch((e) => console.log("error"));
+        .catch((e) => {
+            setError("Error. Try again");
+            setIsSending(false);
+        });
     }
   }
 
@@ -105,10 +109,8 @@ function TransferForm() {
             Send
           </Button>
           <Typography sx={{ textAlign: "center" }}>{error}</Typography>
-          { isSigned ? (
-            <Box
-              sx={{ display: "flex", flexDirection: "column" }}
-            >
+          {isSigned ? (
+            <Box sx={{ display: "flex", flexDirection: "column" }}>
               <Typography sx={{ textAlign: "center", marginTop: "10px" }}>
                 Transaction was approved. Status:{" "}
                 <a href={`https://rinkeby.etherscan.io/tx/${hash}`}>{status}</a>
@@ -122,9 +124,7 @@ function TransferForm() {
               >
                 Transaction Hash
               </Typography>
-              <Typography
-                sx={{ textAlign: "center", marginTop: "5px" }}
-              >
+              <Typography sx={{ textAlign: "center", marginTop: "5px" }}>
                 {hash}
               </Typography>
               <Typography sx={{ textAlign: "center", marginTop: "5px" }}>
@@ -139,7 +139,9 @@ function TransferForm() {
           )}
         </Box>
       ) : (
-        <Box sx={{ display: "flex", flexDirection: "column", padding: "30px 0px" }}>
+        <Box
+          sx={{ display: "flex", flexDirection: "column", padding: "30px 0px" }}
+        >
           <Typography
             sx={{
               textAlign: "center",
@@ -153,7 +155,8 @@ function TransferForm() {
           <Typography
             sx={{ textAlign: "center", fontSize: "18px", marginBottom: "10px" }}
           >
-            See details on <a href={`https://rinkeby.etherscan.io/tx/${hash}`}>Etherscan</a>.
+            See details on{" "}
+            <a href={`https://rinkeby.etherscan.io/tx/${hash}`}>Etherscan</a>.
           </Typography>
           <Typography
             sx={{
