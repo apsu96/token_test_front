@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/token_test_front/static/css/main.e6c13ad2.css",
+    "main.js": "/token_test_front/static/js/main.fef69289.js",
+    "static/js/787.f55aa016.chunk.js": "/token_test_front/static/js/787.f55aa016.chunk.js",
+    "index.html": "/token_test_front/index.html",
+    "main.e6c13ad2.css.map": "/token_test_front/static/css/main.e6c13ad2.css.map",
+    "main.fef69289.js.map": "/token_test_front/static/js/main.fef69289.js.map",
+    "787.f55aa016.chunk.js.map": "/token_test_front/static/js/787.f55aa016.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.e6c13ad2.css",
+    "static/js/main.fef69289.js"
+  ]
+}
